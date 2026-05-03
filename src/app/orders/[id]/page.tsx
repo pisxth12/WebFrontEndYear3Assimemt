@@ -1,107 +1,189 @@
 import { getOrderById } from '@/lib/actions/orders.server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package, MapPin, CreditCard, Calendar } from 'lucide-react';
+import { ChevronLeft, MapPin, Phone, User, Package } from 'lucide-react';
+import { OrderDetail } from '@/types';
+
+const statusConfig: Record<string, { label: string; dot: string; text: string }> = {
+    pending:    { label: 'Pending',    dot: 'bg-amber-400',   text: 'text-amber-600 dark:text-amber-400' },
+    processing: { label: 'Processing', dot: 'bg-blue-400',    text: 'text-blue-600 dark:text-blue-400' },
+    completed:  { label: 'Completed',  dot: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
+    cancelled:  { label: 'Cancelled',  dot: 'bg-red-400',     text: 'text-red-500 dark:text-red-400' },
+};
+
+const paymentLabel: Record<string, { label: string; note: string }> = {
+    cod:  { label: 'Cash on Delivery', note: 'Pay when you receive the order' },
+    bank: { label: 'Bank Transfer',    note: 'Transfer before shipment' },
+    aba:  { label: 'ABA Pay',          note: 'Paid via ABA mobile' },
+};
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const order = await getOrderById(id);
-    
-    if (!order || order.error) {
-        notFound();
-    }
+    const order: OrderDetail = await getOrderById(id);
 
-    const statusColors = {
-        pending: 'bg-yellow-100 text-yellow-800',
-        processing: 'bg-blue-100 text-blue-800',
-        completed: 'bg-green-100 text-green-800',
-        cancelled: 'bg-red-100 text-red-800',
-    };
+    if (!order) notFound();
+
+    const status = statusConfig[order.status] ?? { label: order.status, dot: 'bg-zinc-400', text: 'text-zinc-500' };
+    const payment = paymentLabel[order.payment_method] ?? { label: order.payment_method, note: '' };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-black">
-            <div className="max-w-4xl mx-auto px-4 py-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <Link 
-                        href="/orders" 
-                        className="inline-flex items-center gap-2 text-gray-500 hover:text-black dark:hover:text-white mb-4"
-                    >
-                        <ArrowLeft size={18} />
-                        Back to Orders
-                    </Link>
-                    
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-2xl font-bold text-black dark:text-white">
-                                Order #{order.order_number}
-                            </h1>
-                            <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                                <Calendar size={14} />
-                                {new Date(order.created_at).toLocaleDateString()}
-                            </div>
-                        </div>
-                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[order.status as keyof typeof statusColors] || statusColors.pending}`}>
-                            {order.status}
-                        </div>
+        <div className="min-h-screen bg-white dark:bg-zinc-950 transition-colors duration-200">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-10">
+
+                {/* Back + heading */}
+                <Link
+                    href="/orders"
+                    className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest
+                        text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white
+                        transition-colors duration-200 mb-10 group"
+                    style={{ fontFamily: "'Georgia', serif" }}
+                >
+                    <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform duration-200" />
+                    Back to Orders
+                </Link>
+
+                {/* Title row */}
+                <div className="flex flex-wrap items-baseline justify-between gap-4 mb-10">
+                    <div>
+                        <h1
+                            className="text-3xl sm:text-4xl font-bold text-black dark:text-white"
+                            style={{ fontFamily: "'Georgia', serif", letterSpacing: '-0.025em' }}
+                        >
+                            #{order.order_number}
+                        </h1>
+                        <p className="text-xs text-black/35 dark:text-white/35 mt-1">
+                            {new Date(order.created_at).toLocaleDateString('en-US', {
+                                year: 'numeric', month: 'long', day: 'numeric'
+                            })}
+                        </p>
                     </div>
+                    <span
+                        className={`flex items-center gap-2 text-xs uppercase tracking-widest ${status.text}`}
+                        style={{ fontFamily: "'Georgia', serif" }}
+                    >
+                        <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                        {status.label}
+                    </span>
                 </div>
 
-                <div className="grid gap-6">
-                    {/* Customer Info */}
-                    <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Package size={18} className="text-gray-500" />
-                            <h2 className="font-semibold text-black dark:text-white">Customer Information</h2>
-                        </div>
-                        <div className="space-y-2 pl-6">
-                            <p className="text-black dark:text-white">{order.customer_name}</p>
-                            <p className="text-gray-600 dark:text-gray-400">{order.customer_phone}</p>
-                            <div className="flex items-start gap-2">
-                                <MapPin size={14} className="text-gray-400 mt-0.5" />
-                                <p className="text-gray-600 dark:text-gray-400">{order.shipping_address}</p>
-                            </div>
-                        </div>
-                    </div>
+                {/* Two-column layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10 lg:gap-14 items-start">
 
-                    {/* Order Items */}
-                    <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-                        <h2 className="font-semibold text-black dark:text-white mb-4">Order Items</h2>
-                        <div className="space-y-3">
+                    {/* ── Left: Order items ── */}
+                    <div>
+                        <h2
+                            className="text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-6"
+                            style={{ fontFamily: "'Georgia', serif" }}
+                        >
+                            Order Items
+                        </h2>
+
+                        <div className="flex flex-col divide-y divide-black/8 dark:divide-white/8 border-t border-black/8 dark:border-white/8">
                             {order.items?.map((item: any) => (
-                                <div key={item.id} className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800 last:border-0">
-                                    <div className="flex-1">
-                                        <p className="font-medium text-black dark:text-white">{item.product?.name}</p>
-                                        <p className="text-sm text-gray-500">
-                                            ${item.price} × {item.quantity}
+                                <Link href={`/products/${item.product.slug}`} key={item.id} className="flex items-center gap-5 py-5">
+                                    {/* Image */}
+                                    <div className="w-16 h-16 shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-black/8 dark:border-white/8">
+                                        {item.product?.image ? (
+                                            <img
+                                                src={item.product.image}
+                                                alt={item.product?.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Package size={16} className="text-black/20 dark:text-white/20" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Name + unit */}
+                                    <div className="flex-1 min-w-0">
+                                        <p
+                                            className="text-sm font-semibold text-black dark:text-white truncate"
+                                            style={{ fontFamily: "'Georgia', serif" }}
+                                        >
+                                            {item.product?.name}
+                                        </p>
+                                        <p
+                                            className="text-[11px] uppercase tracking-widest text-black/35 dark:text-white/35 mt-0.5"
+                                            style={{ fontFamily: "'Georgia', serif" }}
+                                        >
+                                            ${parseFloat(item.price).toFixed(2)} × {item.quantity}
                                         </p>
                                     </div>
-                                    <p className="font-semibold text-black dark:text-white">
+
+                                    {/* Line total */}
+                                    <p
+                                        className="text-sm font-bold text-black dark:text-white shrink-0"
+                                        style={{ fontFamily: "'Georgia', serif" }}
+                                    >
                                         ${(item.price * item.quantity).toFixed(2)}
                                     </p>
-                                </div>
+                                </Link>
                             ))}
                         </div>
-                        
+
                         {/* Total */}
-                        <div className="flex justify-between items-center pt-4 mt-2 border-t border-gray-200 dark:border-gray-800">
-                            <span className="font-semibold text-black dark:text-white">Total</span>
-                            <span className="text-xl font-bold text-black dark:text-white">${order.total}</span>
+                        <div className="flex justify-between items-baseline pt-6 border-t border-black/10 dark:border-white/10 mt-2">
+                            <span
+                                className="text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40"
+                                style={{ fontFamily: "'Georgia', serif" }}
+                            >
+                                Order Total
+                            </span>
+                            <span
+                                className="text-2xl font-bold text-black dark:text-white"
+                                style={{ fontFamily: "'Georgia', serif", letterSpacing: '-0.02em' }}
+                            >
+                                ${order.total}
+                            </span>
                         </div>
                     </div>
 
-                    {/* Payment Info */}
-                    <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-                        <div className="flex items-center gap-2 mb-4">
-                            <CreditCard size={18} className="text-gray-500" />
-                            <h2 className="font-semibold text-black dark:text-white">Payment Information</h2>
+                    {/* ── Right: Customer + Payment ── */}
+                    <div className="flex flex-col gap-6 lg:sticky lg:top-24">
+
+                        {/* Customer info */}
+                        <div className="border border-black/10 dark:border-white/10 p-6">
+                            <h2
+                                className="text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-5"
+                                style={{ fontFamily: "'Georgia', serif" }}
+                            >
+                                Customer
+                            </h2>
+                            <div className="flex flex-col gap-3.5">
+                                <div className="flex items-center gap-3">
+                                    <User size={13} strokeWidth={1.5} className="text-black/30 dark:text-white/30 shrink-0" />
+                                    <span className="text-sm text-black dark:text-white">{order.customer_name}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Phone size={13} strokeWidth={1.5} className="text-black/30 dark:text-white/30 shrink-0" />
+                                    <span className="text-sm text-black/70 dark:text-white/70">{order.customer_phone}</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <MapPin size={13} strokeWidth={1.5} className="text-black/30 dark:text-white/30 shrink-0 mt-0.5" />
+                                    <span className="text-sm text-black/70 dark:text-white/70 leading-relaxed">{order.shipping_address}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="pl-6">
-                            <p className="text-black dark:text-white capitalize">{order.payment_method}</p>
-                            <p className="text-sm text-gray-500 mt-1">
-                                {order.payment_method === 'cod' ? 'Pay when you receive the order' : 'Bank transfer'}
+
+                        {/* Payment info */}
+                        <div className="border border-black/10 dark:border-white/10 p-6">
+                            <h2
+                                className="text-[11px] uppercase tracking-widest text-black/40 dark:text-white/40 mb-5"
+                                style={{ fontFamily: "'Georgia', serif" }}
+                            >
+                                Payment
+                            </h2>
+                            <p
+                                className="text-sm font-semibold text-black dark:text-white mb-1"
+                                style={{ fontFamily: "'Georgia', serif" }}
+                            >
+                                {payment.label}
                             </p>
+                            <p className="text-xs text-black/40 dark:text-white/40">{payment.note}</p>
                         </div>
+
                     </div>
                 </div>
             </div>

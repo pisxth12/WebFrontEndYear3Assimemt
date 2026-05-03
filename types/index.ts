@@ -34,6 +34,11 @@ export interface Category {
     name: string;
     slug: string;
 }
+export interface Brand {
+    id: number;
+    name: string;
+    slug: string;
+}
 
 export interface Banner {
     id: number;
@@ -74,4 +79,44 @@ export interface Settings {
     telegram: string;
     copyright: string;
     location: string;
+    business_hours_monday_friday: string;
+    business_hours_saturday: string;
+    business_hours_sunday: string;
+}
+
+export interface TopProduct{
+    id: number;
+    name: string;
+    slug: string;
+    image: string;
+}
+export type TopProducts = TopProduct[]; 
+
+
+export interface OrderItem {
+    id: number;
+    order_id: number;
+    product_id: number;
+    quantity: number;
+    price: string;
+    product: {
+        id: number;
+        name: string;
+        slug: string;
+        image: string;
+    };
+}
+export interface OrderDetail {
+    id: number;
+    session_id: string;
+    order_number: string;
+    customer_name: string;
+    customer_phone: string;
+    shipping_address: string;
+    total: number 
+    payment_method: 'cod' | 'bank' | 'aba';
+    status: 'pending' | 'processing' | 'completed' | 'cancelled'; 
+    items: OrderItem[];
+    created_at: string;
+    updated_at: string;
 }

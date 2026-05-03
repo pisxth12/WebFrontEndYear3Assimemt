@@ -23,6 +23,12 @@ export async function getProducts(params?: ProductParams) {
         return data;
 }
 
+
+export async function getTopProduct() {
+    const data = await serverFetch('/products/top');
+    return data;
+}
+
 export async function getFeatuedProducts() {
     const data = await serverFetch('/featured');
     return data.data;
@@ -32,3 +38,11 @@ export async function getProductBySlug(slug: string) {
     const data = await serverFetch(`/products/${slug}`);
     return data;
 }
+
+export async function getRelatedProduct(id:number) {
+    const data = await serverFetch(`/products/${id}/related`);
+    return data;
+}
+
+
+

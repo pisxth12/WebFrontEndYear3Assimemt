@@ -2,9 +2,10 @@ import { ToastHandler } from '@/src/components/toast-handler';
 import { handleSubmit } from './actions';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { getSettings } from '@/lib/actions/settings.server';
+import { Settings } from '@/types';
 
 export default async function ContactPage() {
-    const settings = await getSettings();
+    const settings:Settings = await getSettings();
 
     return (
         <div className="min-h-screen bg-white dark:bg-black">
@@ -55,15 +56,15 @@ export default async function ContactPage() {
                             <div className="space-y-2 text-black/60 dark:text-white/60">
                                 <div className="flex justify-between">
                                     <span>Monday - Friday</span>
-                                    <span>9am - 6pm</span>
+                                    <span>{settings.business_hours_monday_friday || '10am - 6pm'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Saturday</span>
-                                    <span>10am - 4pm</span>
+                                    <span>{settings.business_hours_saturday || '10am - 4pm'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Sunday</span>
-                                    <span>Closed</span>
+                                    <span>{settings.business_hours_sunday || 'Closed'}</span>
                                 </div>
                             </div>
                         </div>

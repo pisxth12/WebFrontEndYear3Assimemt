@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 export interface CartItem{
     id: number;
+    slug: string;
     product_name: string;
     quantity: number;
     product_id: number;

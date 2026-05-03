@@ -9,7 +9,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     return (
         <Link 
             href={`/products/${product.slug || product.id}`}
-            className="block bg-white dark:bg-black border border-black dark:border-white group"
+            className="block bg-white dark:bg-black border border-black dark:border-white group overflow-hidden"
         >
             <div className="relative aspect-square overflow-hidden bg-white dark:bg-black">
                 <img

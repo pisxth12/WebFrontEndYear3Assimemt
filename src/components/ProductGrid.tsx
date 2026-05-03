@@ -17,15 +17,15 @@ export default function ProductGrid({ products, title, cols = 4 }: ProductGridPr
     }
 
     const colClasses = {
-        2: 'grid-cols-1 sm:grid-cols-2',
-        3: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
-        4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+        2: 'grid-cols-2 sm:grid-cols-2',
+        3: 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3',
+        4: 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
     };
 
     return (
-        <div className=" mx-auto px-4 py-12">
+        <div className=" mx-auto md:px-4  py-12">
             {title && (
-                <h2 className="text-2xl font-bold text-black dark:text-white mb-6">
+                <h2 className="text-2xl text-center font-bold text-black dark:text-white mb-6">
                     {title}
                 </h2>
             )}
